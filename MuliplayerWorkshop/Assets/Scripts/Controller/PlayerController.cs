@@ -20,11 +20,13 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
     private Vector2 networkPosition;
     private float networkJumpTime;
+    private Collider2D playerCollider;
     private void Awake()
     {
         if (rb != null) rb = GetComponent<Rigidbody2D>();
         //playerID = 1;//That's for now, we'll assign a real id with photon
         if (pv == null) pv = GetComponent<PhotonView>();
+        if (playerCollider == null) playerCollider = GetComponent<Collider2D>();
     }
     private void Start()
     {
@@ -50,20 +52,35 @@ public class PlayerController : MonoBehaviour, IPunObservable
         EventManager.OnPlayerDied -= HandlePlayerDeath;
     }
     private void Update()
-    {
+    {/*
         if (GetComponent<PhotonView>().IsMine == false)
         {
             transform.position = Vector2.MoveTowards(transform.position, networkPosition, 5f * Time.deltaTime);
+        }*/
+        if (PhotonNetwork.IsConnectedAndReady)
+        {
+            if (pv.IsMine == false)
+            {
+                transform.position = Vector2.MoveTowards(transform.position, networkPosition, 5f *  Time.deltaTime);
+            }
         }
     }
     private void HandleJump(int id)
     {
-        if (!pv.IsMine) return;
+        bool isControllable = true;
+        if (PhotonNetwork.IsConnectedAndReady)
+        {
+            isControllable = pv.IsMine;
+        }
+        if (!isControllable) return;
         if (id != playerID || !isAlive || isJumping) return;
         ExecuteJumpLogic();
         //We call the rcp in all clients
-        pv.RPC("RPCSyncJump", RpcTarget.Others, playerID);
-        Debug.Log($"[PlayerController] RPC sended");
+        if (PhotonNetwork.IsConnectedAndReady)
+        {
+            pv.RPC("RPCSyncJump", RpcTarget.Others, playerID);
+            Debug.Log($"[PlayerController] RPC sended");
+        }
     }
     private void ExecuteJumpLogic()
     {
@@ -113,8 +130,13 @@ public class PlayerController : MonoBehaviour, IPunObservable
             isAlive = false;
             //Stop movement
             if (rb != null) rb.linearVelocity = Vector2.zero;
-            //Deactivade the input system
+            //Deactivate the input system
             GetComponent<PlayerInputController>().enabled = false;
+            //Deactivate the collider
+            if (playerCollider != null)
+            {
+                playerCollider.enabled = false;
+            }
             Debug.Log($"[PlayerController] Player {playerID} is dead");
         }
     }

@@ -53,7 +53,18 @@ namespace Photon.Pun
         {
             m_firstTake = true;
         }
-
+        private void Start()
+        {
+            if (!PhotonNetwork.IsConnectedAndReady)
+            {
+                PhotonTransformView ptv = GetComponent<PhotonTransformView>();
+                if (ptv != null)
+                {
+                    ptv.enabled = false;
+                    Debug.Log("[WorldRunner] PhotonTransformView deshabilitado (Modo Offline).");
+                }
+            }
+        }
         public void Update()
         {
             var tr = transform;

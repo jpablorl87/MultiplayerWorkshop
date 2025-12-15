@@ -227,7 +227,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   rb: {fileID: 6210583246801180105}
-  jumpForce: 12
+  jumpForce: 15
   slideDuration: 0.5
   verticalMoveSpeed: 8
   playerID: -1

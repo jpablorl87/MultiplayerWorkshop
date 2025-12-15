@@ -8,7 +8,16 @@ public class PlayerSpawnManager : MonoBehaviourPunCallbacks
     [SerializeField] private Transform[] spawnPoints;
     [SerializeField] private Color localPlayerColor = Color.green;
     [SerializeField] private Color remotePlayerColor = Color.magenta;
+    [SerializeField] private GameObject playerPrefab;
     private bool allPlayersReady = false;
+    private void Start()
+    {
+        if (!PhotonNetwork.IsConnectedAndReady)
+        {
+            Debug.Log("[PlayerSpawnManager] Offline mode detected");
+            SpawnPlayerOffline();
+        }
+    }
     public override void OnJoinedRoom()
     {
         SpawnLocalPlayer();
@@ -38,6 +47,28 @@ public class PlayerSpawnManager : MonoBehaviourPunCallbacks
             if (pv != null)
             {
                 pv.SetPlayerColor(PhotonNetwork.IsMasterClient ? localPlayerColor : remotePlayerColor);
+            }
+        }
+        allPlayersReady = true;
+    }
+    private void SpawnPlayerOffline()
+    {
+        GameObject playerGo = Instantiate(playerPrefab, spawnPoints[0].position, Quaternion.identity);
+        PlayerController pc = playerGo.GetComponent<PlayerController>();
+        PlayerInputController pic = playerGo.GetComponent<PlayerInputController>();
+        if (pc != null)
+        {
+            //ID
+            pc.playerID = 1;
+            if (pic != null)
+            {
+                pic.playerID = 1;
+            }
+            //Color
+            PlayerView pv = playerGo.GetComponent<PlayerView>();
+            if (pv != null)
+            {
+                pv.SetPlayerColor(localPlayerColor);
             }
         }
         allPlayersReady = true;

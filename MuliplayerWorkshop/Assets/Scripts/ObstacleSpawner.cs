@@ -21,23 +21,23 @@ public class ObstacleSpawner : MonoBehaviourPun
         EventManager.OnGameOver -= StopSpawning;
     }
     private void Start()
-    {
+    {/*
         if (!PhotonNetwork.IsMasterClient)
         {
             enabled = false;
             Debug.Log("[ObstaceSpawner] Spawner disabled (i'm not the host)");
             return;
-        }
+        }*/
         Debug.Log("[ObstaceSpawner] Spawner enabled (i'm the host)");
     }
     private void StartSpawning(int hostId)
     {
-        if (PhotonNetwork.IsMasterClient)
-        {
+        //if (PhotonNetwork.IsMasterClient)
+        //{
             isSpawningActive = true;
             nextSpawnTime = Time.time + 1;
             Debug.Log("[ObstaceSpawner] Obstacle generation started");
-        }
+        //}
     }
     private void StopSpawning(int hostId)
     {
@@ -72,7 +72,14 @@ public class ObstacleSpawner : MonoBehaviourPun
         }*/
         bool isFloorObstacle = Random.Range(0, 2) == 0;
         Vector3 spawnPos = spawnPoint.position;
-        photonView.RPC("RPCSyncSpawn", RpcTarget.All, isFloorObstacle, spawnPos);
+        if (PhotonNetwork.IsConnectedAndReady)
+        {
+            photonView.RPC("RPCSyncSpawn", RpcTarget.All, isFloorObstacle, spawnPos);
+        }
+        else
+        {
+            RPCSyncSpawn(isFloorObstacle, spawnPos);
+        }
     }
     [PunRPC]
     public void RPCSyncSpawn(bool isFloor, Vector3 position)
