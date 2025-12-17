@@ -30,7 +30,7 @@ public class ObjectPool : MonoBehaviour
                 return obj;
             }
         }
-        Debug.LogError("[ObjectPool] Pool vacía, aumenta el tamaño.");
+        Debug.LogError("[ObjectPool] Pool empty.");
         return null;
     }
     public void ReturnToPool(GameObject obj)

@@ -2,7 +2,7 @@ using System.Collections;
 using Photon.Pun;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour, IPunObservable
+public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private float jumpForce = 12f;
@@ -17,12 +17,14 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private bool isSliding = false;
     private bool isAlive = true;
     private bool isJumping = false;
+    private static bool isGameOverTriggered = false;
 
     private Vector2 networkPosition;
     private float networkJumpTime;
     private Collider2D playerCollider;
     private void Awake()
     {
+        isGameOverTriggered = false;
         if (rb == null) rb = GetComponent<Rigidbody2D>();
         //playerID = 1;//That's for now, we'll assign a real id with photon
         if (pv == null) pv = GetComponent<PhotonView>();
@@ -41,14 +43,16 @@ public class PlayerController : MonoBehaviour, IPunObservable
             pic.playerID = playerID;
         }
     }
-    private void OnEnable()
+    public override void OnEnable()
     {
+        base.OnEnable();
         EventManager.OnPlayerJump += HandleJump;/*
         EventManager.OnPlayerSlide += HandleSlide;*/
         EventManager.OnPlayerDied += HandlePlayerDeath;
     }
-    private void OnDisable()
+    public override void OnDisable()
     {
+        base.OnDisable();
         EventManager.OnPlayerJump -= HandleJump;/*
         EventManager.OnPlayerSlide -= HandleSlide;*/
         EventManager.OnPlayerDied -= HandlePlayerDeath;
@@ -150,11 +154,40 @@ public class PlayerController : MonoBehaviour, IPunObservable
         }
         else if (collision.gameObject.CompareTag("Obstacle"))
         {
-            //EventManager.TriggerPlayerDied(playerID);//Comment for the test
-            EventManager.TriggerSound("SFX_Death");
+            if (PhotonNetwork.IsConnectedAndReady && !pv.IsMine) return;
+
+            Debug.Log($"[PlayerController] LOCAL: I hit an obstacle!");
+
+            if (PhotonNetwork.IsConnectedAndReady)
+            {
+                pv.RPC("RPC_HandlePlayerDeath", RpcTarget.All, playerID);
+            }
+            else
+            {
+                //Offline mode
+                RPC_HandlePlayerDeath(playerID);
+            }
         }
     }
+    [PunRPC]
+    public void RPC_HandlePlayerDeath(int deadPlayerID)
+    {
+        if (isGameOverTriggered) return;
+        isGameOverTriggered = true;
 
+        Debug.Log($"[GameFlow] Player {deadPlayerID} died. Global Game Over.");
+
+        if (pv != null) pv.enabled = false;
+
+        EventManager.TriggerPlayerDied(deadPlayerID);
+
+        EventManager.TriggerGameOver(deadPlayerID);
+        EventManager.TriggerSound("SFX_Death");
+
+        WorldRunner world = Object.FindAnyObjectByType<WorldRunner>();
+        if (world != null) world.enabled = false;
+
+    }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)
@@ -165,7 +198,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         }
         else
         {
-            //We saver the position received to interpolate in update
+            //We save the position received to interpolate in update
             networkPosition = (Vector2)stream.ReceiveNext();
             isJumping = (bool)stream.ReceiveNext();
             view.SetState(isSliding, isJumping);

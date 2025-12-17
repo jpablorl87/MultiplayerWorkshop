@@ -39,6 +39,7 @@ MonoBehaviour:
   - RPCSyncJump
   - RPCSyncSpawn
   - RPC_StartGameSync
+  - RPC_HandlePlayerDeath
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

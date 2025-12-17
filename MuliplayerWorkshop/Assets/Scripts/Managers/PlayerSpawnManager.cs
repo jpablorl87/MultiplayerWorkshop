@@ -87,7 +87,7 @@ public class PlayerSpawnManager : MonoBehaviourPunCallbacks
         }
 
         allPlayersReady = true;
-        Debug.Log($"[PlayerSpawnManager] Player {myActorNumber} instanciado correctamente.");
+        Debug.Log($"[PlayerSpawnManager] Player {myActorNumber} correctly instantiate.");
     }
     private void SpawnPlayerOffline()
     {
