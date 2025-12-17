@@ -8,7 +8,7 @@ public class ObstacleSpawner : MonoBehaviourPun
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private float minSpawnInterval = 1.5f;
     [SerializeField] private float maxSpawnInterval = 2.5f;
-    private float nextSpawnTime;
+    private double nextSpawnPhotonTime;
     private bool isSpawningActive = false;
     private void OnEnable()
     {
@@ -21,23 +21,17 @@ public class ObstacleSpawner : MonoBehaviourPun
         EventManager.OnGameOver -= StopSpawning;
     }
     private void Start()
-    {/*
-        if (!PhotonNetwork.IsMasterClient)
+    {
+        if (PhotonNetwork.IsMasterClient)
         {
-            enabled = false;
-            Debug.Log("[ObstaceSpawner] Spawner disabled (i'm not the host)");
-            return;
-        }*/
-        Debug.Log("[ObstaceSpawner] Spawner enabled (i'm the host)");
+            Debug.Log("[ObstaceSpawner] I'm the host");
+        }
     }
     private void StartSpawning(int hostId)
     {
-        //if (PhotonNetwork.IsMasterClient)
-        //{
-            isSpawningActive = true;
-            nextSpawnTime = Time.time + 1;
-            Debug.Log("[ObstaceSpawner] Obstacle generation started");
-        //}
+        isSpawningActive = true;
+        nextSpawnPhotonTime = PhotonNetwork.Time + 2.0f;
+        Debug.Log("[ObstacleSpawner] Obstacle generation started");
     }
     private void StopSpawning(int hostId)
     {
@@ -46,11 +40,16 @@ public class ObstacleSpawner : MonoBehaviourPun
     }
     private void Update()
     {
+        if (!PhotonNetwork.IsMasterClient) return;
         if (!isSpawningActive) return;
-        if (Time.time > nextSpawnTime)
+
+        double currentTime = PhotonNetwork.Time;
+
+        if (currentTime > nextSpawnPhotonTime)
         {
             DecideAndSpawnObstacle();
-            nextSpawnTime = Time.time + Random.Range(minSpawnInterval, maxSpawnInterval);
+            float interval = Random.Range(minSpawnInterval, maxSpawnInterval);
+            nextSpawnPhotonTime = currentTime + interval;
         }
     }
     private void DecideAndSpawnObstacle()
@@ -72,7 +71,7 @@ public class ObstacleSpawner : MonoBehaviourPun
         }*/
         bool isFloorObstacle = Random.Range(0, 2) == 0;
         Vector3 spawnPos = spawnPoint.position;
-        if (PhotonNetwork.IsConnectedAndReady)
+        if (PhotonNetwork.InRoom)
         {
             photonView.RPC("RPCSyncSpawn", RpcTarget.All, isFloorObstacle, spawnPos);
         }
@@ -85,11 +84,20 @@ public class ObstacleSpawner : MonoBehaviourPun
     public void RPCSyncSpawn(bool isFloor, Vector3 position)
     {
         ObjectPool poolToUse = isFloor ? floorPool : ceilingPool;
+
+        if (poolToUse == null)
+        {
+            Debug.LogError("[ObstacleSpawner] Pool not assigned in inspector");
+            return;
+        }
+
         GameObject newObstacle = poolToUse.GetPooledObject();
+
         if (newObstacle != null)
         {
             newObstacle.transform.position = position;
             newObstacle.SetActive(true);
+            Debug.Log($"[ObstacleSpawner] Obstacle spawned in: {position}");
         }
     }
 }

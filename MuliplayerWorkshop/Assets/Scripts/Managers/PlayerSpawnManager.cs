@@ -12,44 +12,82 @@ public class PlayerSpawnManager : MonoBehaviourPunCallbacks
     private bool allPlayersReady = false;
     private void Start()
     {
-        if (!PhotonNetwork.IsConnectedAndReady)
+        if (PhotonNetwork.InRoom)
         {
-            Debug.Log("[PlayerSpawnManager] Offline mode detected");
-            SpawnPlayerOffline();
+            SpawnLocalPlayer();
+            CheckPlayersAndStart();
         }
     }
     public override void OnJoinedRoom()
     {
-        SpawnLocalPlayer();
+        if (GameObject.FindWithTag("Player") == null)
+        {
+            SpawnLocalPlayer();
+        }
+        CheckPlayersAndStart();
     }
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        if (PhotonNetwork.CurrentRoom.PlayerCount ==2 && PhotonNetwork.IsMasterClient)
+        Debug.Log($"[PlayerSpawnManager] Player {newPlayer.ActorNumber} joined");
+        CheckPlayersAndStart();
+    }
+    private void CheckPlayersAndStart()
+    {
+        if (PhotonNetwork.IsMasterClient)
         {
-            //Game start here
+            int currentPlayers = PhotonNetwork.CurrentRoom.PlayerCount;
+            Debug.Log($"[PlayerSpawnManager] Checking players: {currentPlayers}/2");
+
+            if (currentPlayers >= 2 && allPlayersReady)
+            {
+                if (photonView != null)
+                {
+                    Debug.Log("[PlayerSpawnManager] Condition met. Sending RPC_StartGameSync");
+                    photonView.RPC("RPC_StartGameSync", RpcTarget.All);
+                }
+                else
+                {
+                    Debug.LogError("[PlayerSpawnManager] ERROR: No Photonview in this object");
+                }
+            }
         }
+    }
+    [PunRPC]
+    public void RPC_StartGameSync()
+    {
+        EventManager.TriggerGameStart(PhotonNetwork.MasterClient.ActorNumber);
+        Debug.Log("[PlayerSpawnManager] Event start Triggered");
     }
     private void SpawnLocalPlayer()
     {
-        //ID and position
-        int playerActorNumber = PhotonNetwork.LocalPlayer.ActorNumber;
-        int spawnIndex = playerActorNumber - 1;
+        int myActorNumber = PhotonNetwork.LocalPlayer.ActorNumber;
+
         Vector3 spawnPos = spawnPoints[0].position;
-        //Instantiation in network
+        if (myActorNumber > 1 && spawnPoints.Length > 1) spawnPos = spawnPoints[1].position;
+
         GameObject playerGo = PhotonNetwork.Instantiate(playerPrefabName, spawnPos, Quaternion.identity);
-        PlayerController pc = playerGo.GetComponent<PlayerController>();
-        if (pc!= null)
+
+        if (playerGo == null)
         {
-            //ID
-            pc.playerID = playerActorNumber;
-            //Color
+            Debug.LogError($"[PlayerSpawnManager] Could not instantiate {playerPrefabName}. Watch resources folder.");
+            return;
+        }
+
+        PlayerController pc = playerGo.GetComponent<PlayerController>();
+        if (pc != null)
+        {
+            pc.playerID = myActorNumber;
+
             PlayerView pv = playerGo.GetComponent<PlayerView>();
             if (pv != null)
             {
-                pv.SetPlayerColor(PhotonNetwork.IsMasterClient ? localPlayerColor : remotePlayerColor);
+                Color colorAAsignar = (myActorNumber == 1) ? localPlayerColor : remotePlayerColor;
+                pv.SetPlayerColor(colorAAsignar);
             }
         }
+
         allPlayersReady = true;
+        Debug.Log($"[PlayerSpawnManager] Player {myActorNumber} instanciado correctamente.");
     }
     private void SpawnPlayerOffline()
     {

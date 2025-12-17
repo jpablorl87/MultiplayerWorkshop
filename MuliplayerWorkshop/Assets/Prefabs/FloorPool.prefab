@@ -45,4 +45,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectPool
   obstaclePrefab: {fileID: 6638436103830483989, guid: ca32a1019ce9f704498d2fc56d4be95e, type: 3}
-  poolSize: 20
+  poolSize: 50

@@ -680,7 +680,6 @@ GameObject:
   m_Component:
   - component: {fileID: 554753809}
   - component: {fileID: 554753808}
-  - component: {fileID: 554753810}
   m_Layer: 0
   m_Name: World
   m_TagString: Untagged
@@ -700,7 +699,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97a0cc233abc5d341ba66c138e349267, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldRunner
-  runSpeed: 5
+  runSpeed: 0.5
 --- !u!4 &554753809
 Transform:
   m_ObjectHideFlags: 0
@@ -718,22 +717,6 @@ Transform:
   - {fileID: 1411377093}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &554753810
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 554753807}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonTransformView
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 0
-  m_SynchronizeScale: 0
-  m_UseLocal: 1
 --- !u!1 &582841228
 GameObject:
   m_ObjectHideFlags: 0
@@ -993,8 +976,8 @@ MonoBehaviour:
   floorPool: {fileID: 1145681111221297455}
   ceilingPool: {fileID: 1145681111221297455}
   spawnPoint: {fileID: 943752020}
-  minSpawnInterval: 1.5
-  maxSpawnInterval: 2.5
+  minSpawnInterval: 10
+  maxSpawnInterval: 15
 --- !u!4 &1411377093
 Transform:
   m_ObjectHideFlags: 0
@@ -1044,6 +1027,7 @@ GameObject:
   - component: {fileID: 1729738125}
   - component: {fileID: 1729738124}
   - component: {fileID: 1729738126}
+  - component: {fileID: 1729738127}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1096,6 +1080,28 @@ MonoBehaviour:
   localPlayerColor: {r: 0, g: 1, b: 0, a: 1}
   remotePlayerColor: {r: 1, g: 0, b: 1, a: 1}
   playerPrefab: {fileID: 6824842364031231830, guid: e4e332e4186d70a4b89a0c5c466927cf, type: 3}
+--- !u!114 &1729738127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729738123}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 2
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &2076925978
 GameObject:
   m_ObjectHideFlags: 0

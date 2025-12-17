@@ -1,4 +1,3 @@
-using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -24,16 +23,14 @@ public class ObjectPool : MonoBehaviour
     }
     public GameObject GetPooledObject()
     {
-        foreach (GameObject obj  in pooledObjects)
+        foreach (GameObject obj in pooledObjects)
         {
             if (!obj.activeInHierarchy)
             {
-                obj.SetActive(true);
                 return obj;
             }
         }
-        //If we're here, we need a gameobject, but it's null
-        Debug.LogError("[ObjectPool] Empty pool, rise the poolsize");
+        Debug.LogError("[ObjectPool] Pool vacía, aumenta el tamaño.");
         return null;
     }
     public void ReturnToPool(GameObject obj)

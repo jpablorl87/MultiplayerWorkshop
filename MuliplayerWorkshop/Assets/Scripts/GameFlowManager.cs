@@ -15,7 +15,7 @@ public class GameFlowManager : MonoBehaviour
     private void Start()
     {
         playersAlive = TOTAL_PLAYERS;
-        Invoke(nameof(SimulateGameStart), 2f);
+        //Invoke(nameof(SimulateGameStart), 2f);
     }
     private void SimulateGameStart()
     {

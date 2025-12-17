@@ -6,24 +6,26 @@ using UnityEngine;
 public class RoomList : MonoBehaviourPunCallbacks
 {
     public GameObject prefabBtRooms;
-    public GameObject[] Allrooms;
+    //public GameObject[] Allrooms;
+    public Transform contentParent;
+    private List<GameObject> allRoomsButtons = new List<GameObject>();
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
-        for (int i = 0; i < Allrooms.Length; i++)
+        foreach (GameObject button in allRoomsButtons)
         {
-            if (Allrooms[i] != null)
+            if (button != null)
             {
-                Destroy(Allrooms[i]);
+                Destroy(button);
             }
         }
-        Allrooms = new GameObject[roomList.Count];
-        for (int i = 0; i < roomList.Count; i++)
+        allRoomsButtons.Clear();
+        foreach (RoomInfo roomInfo in roomList)
         {
-            if (roomList[i].IsOpen && roomList[i].IsVisible && roomList[i].PlayerCount >= 1)
+            if (!roomInfo.RemovedFromList && roomInfo.IsOpen && roomInfo.IsVisible)
             {
-                GameObject room = Instantiate(prefabBtRooms, Vector3.zero, Quaternion.identity, GameObject.Find("Content").transform);
-                room.GetComponent<Room>().roomName.text = roomList[i].Name;
-                Allrooms[i] = room;
+                GameObject roomButton = Instantiate(prefabBtRooms, contentParent);
+                roomButton.GetComponent<Room>().roomName.text = roomInfo.Name;
+                allRoomsButtons.Add(roomButton);
             }
         }
     }

@@ -23,20 +23,22 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Collider2D playerCollider;
     private void Awake()
     {
-        if (rb != null) rb = GetComponent<Rigidbody2D>();
+        if (rb == null) rb = GetComponent<Rigidbody2D>();
         //playerID = 1;//That's for now, we'll assign a real id with photon
         if (pv == null) pv = GetComponent<PhotonView>();
         if (playerCollider == null) playerCollider = GetComponent<Collider2D>();
+        if (!PhotonNetwork.IsConnectedAndReady) playerID = 1;
     }
     private void Start()
     {
-        if (playerID == -1)
+        if (PhotonNetwork.IsConnectedAndReady && pv != null && pv.Owner != null)
         {
-            PlayerController inputController = GetComponent<PlayerController>();
-            if (inputController != null)
-            {
-                inputController.playerID = playerID;
-            }
+            playerID = pv.Owner.ActorNumber;
+        }
+        PlayerInputController pic = GetComponent<PlayerInputController>();
+        if (pic != null)
+        {
+            pic.playerID = playerID;
         }
     }
     private void OnEnable()
@@ -52,26 +54,23 @@ public class PlayerController : MonoBehaviour, IPunObservable
         EventManager.OnPlayerDied -= HandlePlayerDeath;
     }
     private void Update()
-    {/*
-        if (GetComponent<PhotonView>().IsMine == false)
+    {
+        if (PhotonNetwork.IsConnectedAndReady && pv != null)
         {
-            transform.position = Vector2.MoveTowards(transform.position, networkPosition, 5f * Time.deltaTime);
-        }*/
-        if (PhotonNetwork.IsConnectedAndReady)
-        {
-            if (pv.IsMine == false)
+            if (!pv.IsMine)
             {
-                transform.position = Vector2.MoveTowards(transform.position, networkPosition, 5f *  Time.deltaTime);
+                rb.position = Vector2.MoveTowards(rb.position, networkPosition, 10f * Time.deltaTime);
             }
         }
     }
     private void HandleJump(int id)
     {
-        bool isControllable = true;
-        if (PhotonNetwork.IsConnectedAndReady)
+        //bool isControllable = true;
+        bool isControllable = PhotonNetwork.IsConnectedAndReady ? pv.IsMine : true;
+        /*if (PhotonNetwork.IsConnectedAndReady)
         {
             isControllable = pv.IsMine;
-        }
+        }*/
         if (!isControllable) return;
         if (id != playerID || !isAlive || isJumping) return;
         ExecuteJumpLogic();
@@ -95,10 +94,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
     public void RPCSyncJump(int id)
     {
         if (pv.IsMine) return;
-        if (id == playerID && !isJumping)
+        if (id == playerID)
         {
             isJumping = true;
             view.SetState(isSliding, isJumping);
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce * 0.8f);
             Debug.Log($"[PlayerController] Remote player sync jump");
         }
     }
@@ -133,10 +133,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
             //Deactivate the input system
             GetComponent<PlayerInputController>().enabled = false;
             //Deactivate the collider
-            if (playerCollider != null)
-            {
-                playerCollider.enabled = false;
-            }
+            if (playerCollider != null) playerCollider.enabled = false;
             Debug.Log($"[PlayerController] Player {playerID} is dead");
         }
     }
@@ -153,7 +150,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         }
         else if (collision.gameObject.CompareTag("Obstacle"))
         {
-            EventManager.TriggerPlayerDied(playerID);
+            //EventManager.TriggerPlayerDied(playerID);//Comment for the test
             EventManager.TriggerSound("SFX_Death");
         }
     }
@@ -171,7 +168,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
             //We saver the position received to interpolate in update
             networkPosition = (Vector2)stream.ReceiveNext();
             isJumping = (bool)stream.ReceiveNext();
-            //We calculate the lag
+            view.SetState(isSliding, isJumping);
+            float lag = Mathf.Abs((float)(PhotonNetwork.Time - info.SentServerTime));
             networkJumpTime = Time.time;
         }
     }

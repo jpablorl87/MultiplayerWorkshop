@@ -23,7 +23,10 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     }
     public override void OnJoinedRoom()
     {
-        PhotonNetwork.LoadLevel(3);//Should be escene 3 = PhotonNetwork.LoadLevel(3)
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.LoadLevel(3);//Should be escene SampleGameplay = PhotonNetwork.LoadLevel("SampleGameplay");
+        }
     }
     //Network logic
     public override void OnLeftRoom()
