@@ -6,8 +6,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private float jumpForce = 12f;
-    [SerializeField] private float slideDuration = 0.5f;
-    [SerializeField] private float verticalMoveSpeed = 8f;
+    //[SerializeField] private float slideDuration = 0.5f;//for further development
+    //[SerializeField] private float verticalMoveSpeed = 8f;
     //ID of the player
     [HideInInspector] public int playerID = -1;
     //View

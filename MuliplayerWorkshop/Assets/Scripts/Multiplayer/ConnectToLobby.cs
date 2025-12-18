@@ -9,6 +9,11 @@ public class ConnectToLobby : MonoBehaviourPunCallbacks
     {
         PhotonNetwork.JoinLobby();
     }
+    public void QuitGame()
+    {
+        Debug.Log("Quitting...");
+        Application.Quit();
+    }
     public override void OnJoinedLobby()
     {
         SceneManager.LoadScene(2);
